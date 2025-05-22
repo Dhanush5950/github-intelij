@@ -25,11 +25,12 @@ public class JwtProvider {
                 .setExpiration(new Date(new Date().getTime() + 86400000)) // 1 day
                 .claim("email", auth.getName())
                 .claim("authorities", roles)
-                .signWith(key)
+                .signWith(key, io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
 
         return jwt;
     }
+
 
     public String getEmailFromJwtToken(String jwt) {
         jwt = jwt.substring(7); // Assuming "Bearer <token>"

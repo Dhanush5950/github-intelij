@@ -9,10 +9,10 @@ import com.Flytosky.model.User;
 import com.Flytosky.repository.CartRepository;
 import com.Flytosky.repository.UserRepository;
 import com.Flytosky.request.LoginRequest;
-import com.Flytosky.request.SignupRequest;
 import com.Flytosky.response.AuthResponse;
-import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 
@@ -50,21 +50,38 @@ public class AuthController {
     private CartRepository cartRepository;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> createUserHandler(@Valid @RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody User user) throws Exception {
 
-        if (signupRequest.getPassword() == null || signupRequest.getPassword().isBlank()) {
-            return ResponseEntity.badRequest().body("Password is required");
+        User isEmailExist = userRepository.findByEmail(user.getEmail());
+        if(isEmailExist!=null)
+        {
+            throw new Exception("Email already used with another account");
         }
 
-        User user = new User();
-        user.setFullName(signupRequest.getFullName());
-        user.setEmail(signupRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        user.setRole(USER_ROLE.ROLE_CUSTOMER);
+        User createdUser = new User();
+        createdUser.setEmail(user.getEmail());
+        createdUser.setFullName(user.getFullName());
+        createdUser.setRole(user.getRole());
+        createdUser.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        userRepository.save(user);
+        User saveUser = userRepository.save(createdUser);
 
-        return ResponseEntity.ok("User registered successfully!");
+        Cart cart =  new Cart();
+        cart.setCustomer(saveUser);
+        cartRepository.save(cart);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(),user.getPassword());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwt = jwtProvider.generateToken(authentication);
+
+        AuthResponse authResponse= new AuthResponse();
+        authResponse.setJwt(jwt);
+        authResponse .setMessage("Login success");
+        authResponse.setRole(saveUser.getRole());
+
+
+        return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
     }
 
 

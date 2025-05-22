@@ -32,7 +32,6 @@ public class CustomerUserDetailsService implements UserDetailsService {
 
         USER_ROLE role = user.getRole();
 
-
         List<GrantedAuthority> authorities = new ArrayList<>();
 
         authorities.add(new SimpleGrantedAuthority(role.toString()));

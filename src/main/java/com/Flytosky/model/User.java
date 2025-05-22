@@ -2,11 +2,13 @@ package com.Flytosky.model;
 
 
 import com.Flytosky.dto.RestaurantDto;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,14 +36,14 @@ public class User {
 
 
     @NotBlank(message = "Password is required")
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @NotNull(message = "Role must not be null")
+
     private USER_ROLE role= USER_ROLE.ROLE_CUSTOMER;
 
 
-
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
     private List<Order> orders = new ArrayList<>();
 
